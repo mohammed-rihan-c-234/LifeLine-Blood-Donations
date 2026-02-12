@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+    #alerts-map { height: 380px; width: 100%; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="section-title">
+            <h2>Hospital Dashboard</h2>
+            <p>View incoming SOS alerts and manage inventory.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <h3>Patient Locations</h3>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div id="alerts-map"></div>
+                <p id="alerts-map-status" style="margin-top: 10px; color: #777;">Loading map…</p>
+                {{ alerts_for_map|json_script:"alerts-for-map" }}
+            </div>
+        </div>
+
+        <h3>Incoming Alerts</h3>
+        {% for item in alerts %}
+            {% with alert=item.alert can_accept=item.can_accept %}
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p style="margin: 0;"><strong>Patient:</strong> {{ alert.patient_name|default:"Unknown" }}</p>
+                            <p style="margin: 0;"><strong>Blood Type:</strong> {{ alert.blood_type }}</p>
+                            <p style="margin: 0; color:#777;"><small>{{ alert.created_at|date:"M d, H:i" }}</small></p>
+                        </div>
+                        <div class="col-sm-6 text-right">
+                            <span class="label label-warning" style="display:inline-block; margin-bottom: 8px;">PENDING</span>
+                            {% if alert.latitude and alert.longitude %}
+                                <p style="margin:0;">
+                                    <a href="https://www.openstreetmap.org/?mlat={{ alert.latitude }}&mlon={{ alert.longitude }}#map=16/{{ alert.latitude }}/{{ alert.longitude }}"
+                                       target="_blank" rel="noopener noreferrer">
+                                        <i class="fa fa-map-marker"></i> Open Map
+                                    </a>
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr style="margin: 10px 0;">
+                    <p style="margin: 0;"><strong>Reason:</strong> {{ alert.note|default:"-" }}</p>
+                    {% if alert.preferred_hospital_name %}
+                        <p style="margin: 0;"><strong>Selected Hospital:</strong> {{ alert.preferred_hospital_name }}</p>
+                    {% endif %}
+                    {% if alert.donor_responder %}
+                        <p style="margin: 0;"><strong>Donor Received:</strong> {{ alert.donor_responder.first_name|default:alert.donor_responder.username }} ({{ alert.donor_status }})</p>
+                    {% else %}
+                        <p style="margin: 0;"><strong>Donor Status:</strong> {{ alert.donor_status }}</p>
+                    {% endif %}
+                    {% if alert.latitude and alert.longitude %}
+                        <p style="margin: 0; color:#777;"><small><strong>Location:</strong> {{ alert.latitude }}, {{ alert.longitude }}</small></p>
+                    {% endif %}
+
+                    {% if not can_accept %}
+                        <div class="alert alert-warning" style="margin-top: 10px;">
+                            No stock left for {{ alert.blood_type }}.
+                        </div>
+                    {% endif %}
+
+                    <div class="row" style="margin-top: 15px;">
+                        <div class="col-sm-6">
+                            <form action="{% url 'respond_sos' alert.id 'decline' %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-default btn-block">Decline</button>
+                            </form>
+                        </div>
+                        <div class="col-sm-6">
+                            <form action="{% url 'respond_sos' alert.id 'accept' %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-block" {% if not can_accept %}disabled{% endif %}>
+                                    Accept (We Have Stock)
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+        {% empty %}
+            <div class="alert alert-info">No pending alerts.</div>
+        {% endfor %}
+    </div>
+
+    <div class="col-md-4">
+        <div class="clearfix" style="margin-bottom: 10px;">
+            <h3 class="pull-left" style="margin: 0;">Inventory</h3>
+            <a href="{% url 'manage_my_inventory' %}" class="btn btn-default btn-sm pull-right">
+                <i class="fa fa-pencil"></i> Edit My Stock
+            </a>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><td><strong>A+</strong></td><td class="text-right">{{ inventory.a_positive }}</td></tr>
+                        <tr><td><strong>A-</strong></td><td class="text-right">{{ inventory.a_negative }}</td></tr>
+                        <tr><td><strong>B+</strong></td><td class="text-right">{{ inventory.b_positive }}</td></tr>
+                        <tr><td><strong>B-</strong></td><td class="text-right">{{ inventory.b_negative }}</td></tr>
+                        <tr><td><strong>AB+</strong></td><td class="text-right">{{ inventory.ab_positive }}</td></tr>
+                        <tr><td><strong>AB-</strong></td><td class="text-right">{{ inventory.ab_negative }}</td></tr>
+                        <tr><td><strong>O+</strong></td><td class="text-right">{{ inventory.o_positive }}</td></tr>
+                        <tr><td><strong>O-</strong></td><td class="text-right">{{ inventory.o_negative }}</td></tr>
+                    </tbody>
+                </table>
+                <p class="text-muted" style="margin:0;"><small>Live Stock Status</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    (function initAlertsMap() {
+        const statusEl = document.getElementById('alerts-map-status');
+        const dataEl = document.getElementById('alerts-for-map');
+        const alerts = dataEl ? JSON.parse(dataEl.textContent || '[]') : [];
+
+        const fallbackLat = Number('{{ user.latitude }}') || 28.6139;
+        const fallbackLon = Number('{{ user.longitude }}') || 77.2090;
+
+        const map = L.map('alerts-map').setView([fallbackLat, fallbackLon], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        if (!alerts.length) {
+            statusEl.textContent = 'No active patient locations yet.';
+            return;
+        }
+
+        const bounds = L.latLngBounds([]);
+        alerts.forEach(a => {
+            const lat = Number(a.latitude);
+            const lon = Number(a.longitude);
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
+            const popup = `
+                <strong>Patient:</strong> ${a.patient_name || 'Unknown'}<br/>
+                <strong>Blood:</strong> ${a.blood_type || ''}<br/>
+                ${a.note ? `<strong>Reason:</strong> ${a.note}` : ''}
+            `;
+            L.marker([lat, lon]).addTo(map).bindPopup(popup);
+            bounds.extend([lat, lon]);
+        });
+
+        map.fitBounds(bounds.pad(0.15));
+        statusEl.textContent = `Showing ${alerts.length} patient location(s).`;
+    })();
+</script>
+{% endblock %}

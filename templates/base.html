@@ -1,0 +1,181 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>LifeLine Blood Network</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet" href="{% static 'health/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'health/css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'health/css/animate.css' %}">
+    <link rel="stylesheet" href="{% static 'health/css/owl.carousel.css' %}">
+    <link rel="stylesheet" href="{% static 'health/css/owl.theme.default.min.css' %}">
+    <link rel="stylesheet" href="{% static 'health/css/tooplate-style.css' %}">
+
+    {% block extra_head %}{% endblock %}
+    <style>
+        .navbar-brand i { margin-right: 6px; }
+        .lifeline-content { padding: 40px 0; }
+        .auth-actions { margin-top: 12px; }
+        .auth-actions form { display: inline; }
+        .auth-actions .btn { margin-left: 8px; }
+        .messages-wrap { margin: 15px 0 0; }
+    </style>
+</head>
+<body id="top" data-spy="scroll" data-target=".navbar-collapse" data-offset="50">
+
+    <!-- PRE LOADER -->
+    <section class="preloader">
+        <div class="spinner">
+            <span class="spinner-rotate"></span>
+        </div>
+    </section>
+
+    <!-- HEADER -->
+    <header>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-sm-6">
+                    <p>LifeLine Blood Network</p>
+                </div>
+                <div class="col-md-6 col-sm-6 text-right">
+                    {% if user.is_authenticated %}
+                        <span class="email-icon">
+                            <i class="fa fa-user"></i>
+                            {{ user.first_name|default:user.username }} ({{ user.role }})
+                        </span>
+                    {% else %}
+                        <span class="email-icon">
+                            <i class="fa fa-info-circle"></i>
+                            Sign in to continue
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MENU -->
+    <section class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon icon-bar"></span>
+                    <span class="icon icon-bar"></span>
+                    <span class="icon icon-bar"></span>
+                </button>
+                <a href="{% url 'dashboard' %}" class="navbar-brand"><i class="fa fa-heartbeat"></i>LifeLine</a>
+            </div>
+
+            <div class="collapse navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                        {% if user.role == 'user' %}
+                            <li><a href="{% url 'donor_list' %}">Donor List</a></li>
+                        {% endif %}
+                        <li class="appointment-btn">
+                            <form action="{% url 'logout' %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary">Logout</button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li><a href="{% url 'login' %}">Sign In</a></li>
+                        <li class="appointment-btn"><a href="{% url 'signup' %}">Sign Up</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <main class="lifeline-content">
+        <div class="container">
+            {% if messages %}
+                <div class="messages-wrap">
+                    {% for message in messages %}
+                        {% if message.tags == 'error' %}
+                            {% with alert_class='danger' %}
+                                <div class="alert alert-{{ alert_class }}" role="alert">{{ message }}</div>
+                            {% endwith %}
+                        {% elif message.tags %}
+                            <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+                        {% else %}
+                            <div class="alert alert-info" role="alert">{{ message }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer data-stellar-background-ratio="5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 col-sm-12">
+                    <div class="copyright-text">
+                        <p>LifeLine Blood Network</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'health/js/jquery.js' %}"></script>
+    <script src="{% static 'health/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'health/js/jquery.sticky.js' %}"></script>
+    <script src="{% static 'health/js/jquery.stellar.min.js' %}"></script>
+    <script src="{% static 'health/js/wow.min.js' %}"></script>
+    <script src="{% static 'health/js/smoothscroll.js' %}"></script>
+    <script src="{% static 'health/js/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'health/js/custom.js' %}"></script>
+
+    {% if user.is_authenticated %}
+    <script>
+        (function lifelineAutoLocation() {
+            if (!navigator.geolocation) return;
+
+            const KEY = 'lifeline_last_location';
+            const now = Date.now();
+            try {
+                const cached = JSON.parse(localStorage.getItem(KEY) || 'null');
+                if (cached && cached.ts && (now - cached.ts) < 10 * 60 * 1000) {
+                    window.dispatchEvent(new CustomEvent('lifeline:location', { detail: cached }));
+                }
+            } catch (e) { /* ignore */ }
+
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+                return null;
+            }
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const payload = { lat: pos.coords.latitude, lon: pos.coords.longitude, ts: Date.now() };
+                try { localStorage.setItem(KEY, JSON.stringify(payload)); } catch (e) { /* ignore */ }
+                window.dispatchEvent(new CustomEvent('lifeline:location', { detail: payload }));
+
+                const csrf = getCookie('csrftoken');
+                if (!csrf) return;
+                try {
+                    const body = new URLSearchParams({ latitude: String(payload.lat), longitude: String(payload.lon) });
+                    await fetch('{% url "update_location" %}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 'X-CSRFToken': csrf },
+                        body
+                    });
+                } catch (e) { /* ignore */ }
+            }, () => {
+                // ignore
+            }, { enableHighAccuracy: true, timeout: 8000 });
+        })();
+    </script>
+    {% endif %}
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

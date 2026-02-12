@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 col-md-offset-1">
+        <div class="section-title">
+            <h2>Manage Hospital</h2>
+            <p>Update details for <strong>{{ hospital.first_name }}</strong>.</p>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form method="post" autocomplete="off">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ form.non_field_errors.0 }}
+                        </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="text-danger" style="margin-top: 6px;">{{ field.errors.0 }}</div>
+                            {% endif %}
+                            {% if field.name == 'password' %}
+                                <p class="help-block">Leave blank to keep the current password.</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <a href="{% url 'dashboard' %}" class="btn btn-default btn-block">Cancel</a>
+                        </div>
+                        <div class="col-sm-6">
+                            <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 col-md-offset-3 col-sm-10 col-sm-offset-1">
+        <div class="section-title">
+            <h2>Create Account</h2>
+            <p>Sign up to request blood or manage hospital inventory.</p>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form method="post" autocomplete="on" id="signup-form">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ form.non_field_errors.0 }}
+                        </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {% if field.name == 'blood_group' %}
+                                <div id="blood-group-wrap">
+                                    {{ field }}
+                                    <p class="help-block">Required for donors only.</p>
+                                </div>
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="text-danger" style="margin-top: 6px;">{{ field.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                </form>
+
+                <hr>
+                <p class="text-center" style="margin: 0;">
+                    Already have an account? <a href="{% url 'login' %}">Sign In</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    (function initRoleBloodGroup() {
+        var roleField = document.getElementById('id_role');
+        var wrap = document.getElementById('blood-group-wrap');
+        if (!roleField || !wrap) return;
+
+        function update() {
+            var isDonor = roleField.value === 'donor';
+            wrap.style.display = isDonor ? 'block' : 'none';
+            if (!isDonor) {
+                var select = wrap.querySelector('select');
+                if (select) select.value = '';
+            }
+        }
+
+        roleField.addEventListener('change', update);
+        update();
+    })();
+</script>
+{% endblock %}

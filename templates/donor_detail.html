@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="section-title">
+            <h2>Donor Details</h2>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <p><strong>Name:</strong> {{ donor.first_name|default:donor.username }}</p>
+                <p><strong>Username:</strong> {{ donor.username }}</p>
+                <p><strong>Email:</strong> {{ donor.email }}</p>
+                <p><strong>Blood Group:</strong> {{ donor.blood_group|default:"-" }}</p>
+                <p><strong>Availability:</strong> {{ donor.donor_availability }}</p>
+                <p><strong>Last Donation:</strong> {{ donor.last_donation_date|date:"M d, Y"|default:"-" }}</p>
+                {% if donor.address %}
+                    <p><strong>Address:</strong> {{ donor.address }}</p>
+                {% endif %}
+                <a href="{% url 'donor_list' %}" class="btn btn-default">Back to Donors</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
