@@ -8,13 +8,16 @@ A Django web app for managing blood donation workflows, including donors, patien
 - SQLite (default for local development)
 - HTML/CSS/JS
 
-## Local Setup
+## Local Setup (Defaults)
 1. Create and activate a virtual environment.
-2. Install dependencies (add a requirements file if you do not have one yet):
-   - `pip install -r requirements.txt`
+2. Install dependencies. If you do not have a `requirements.txt` yet, install Django:
+   - `pip install django`
+   - (Optional) `pip freeze > requirements.txt`
 3. Run migrations:
    - `python manage.py migrate`
-4. Start the server:
+4. Create an admin user:
+   - `python manage.py createsuperuser`
+5. Start the server:
    - `python manage.py runserver`
 
 ## Project Structure
