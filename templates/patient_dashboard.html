@@ -62,8 +62,8 @@
             <div class="awareness-icon"><i class="fa fa-heartbeat"></i></div>
             <div class="awareness-text">
                 <h4>Awareness</h4>
-                <p>Every donation can save up to three lives. Thank you for supporting patients in need.</p>
-                <p style="margin-top: 6px;">Tip: Share accurate location and details so responders can act faster.</p>
+                <p>Spread urgent donor needs through social media, organize easy-to-access donation drives, and share real stories to inspire action.</p>
+                <p style="margin-top: 6px;">Educate people that donation is safe and quick, and encourage first-time and regular voluntary donors for a safer blood supply.</p>
             </div>
         </div>
     </div>
@@ -106,7 +106,22 @@
                         <a href="{% url 'patient_donors' alert.id %}" class="btn btn-default btn-sm">
                             View Donors For This Request
                         </a>
+                        <button type="button" class="btn btn-primary btn-sm js-feedback-toggle" data-target-id="feedback-box-{{ alert.id }}">
+                            Feedback
+                        </button>
                     </p>
+                    <div id="feedback-box-{{ alert.id }}" class="js-feedback-box" style="display:none; margin-top:10px;">
+                        <form action="{% url 'save_sos_feedback' alert.id %}" method="post">
+                            {% csrf_token %}
+                            <div class="form-group" style="margin-bottom:8px;">
+                                <textarea name="feedback" class="form-control" rows="3" placeholder="Write your feedback here..." required>{{ alert.feedback }}</textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm">Save Feedback</button>
+                        </form>
+                    </div>
+                    {% if alert.feedback %}
+                        <p style="margin: 8px 0 0;"><strong>Saved Feedback:</strong> {{ alert.feedback }}</p>
+                    {% endif %}
                     <p style="margin: 0; color: #777;"><small>{{ alert.created_at|date:"M d, H:i" }}</small></p>
                 </div>
             </div>
@@ -202,6 +217,19 @@
         btn.addEventListener('click', function () {
             requests.forEach(function (panel) { panel.style.display = 'block'; });
             btn.style.display = 'none';
+        });
+    })();
+
+    (function initFeedbackToggle() {
+        var buttons = document.querySelectorAll('.js-feedback-toggle');
+        if (!buttons.length) return;
+        buttons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var targetId = btn.getAttribute('data-target-id');
+                var box = targetId ? document.getElementById(targetId) : null;
+                if (!box) return;
+                box.style.display = box.style.display === 'none' ? 'block' : 'none';
+            });
         });
     })();
 

@@ -80,3 +80,4 @@ class SOSAlert(models.Model):
         related_name='donor_responses',
     )
     donor_status = models.CharField(max_length=10, choices=DONOR_STATUS_CHOICES, default='pending')
+    feedback = models.TextField(blank=True, default="")

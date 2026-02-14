@@ -341,6 +341,25 @@ def submit_sos(request):
         )
     return redirect('dashboard')
 
+
+@login_required
+@require_POST
+def save_sos_feedback(request, alert_id):
+    if request.user.role != 'user':
+        return redirect('dashboard')
+
+    alert = get_object_or_404(SOSAlert, id=alert_id, requester=request.user)
+    feedback = (request.POST.get('feedback') or '').strip()
+    if not feedback:
+        messages.error(request, "Feedback cannot be empty.")
+        return redirect('dashboard')
+
+    alert.feedback = feedback
+    alert.save(update_fields=['feedback'])
+    messages.success(request, "Feedback saved.")
+    return redirect('dashboard')
+
+
 @login_required
 def respond_sos(request, alert_id, action):
     if request.user.role != 'hospital':

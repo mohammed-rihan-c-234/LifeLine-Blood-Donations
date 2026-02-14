@@ -26,6 +26,7 @@ urlpatterns = [
     
     # --- SOS Operations ---
     path('sos/submit/', views.submit_sos, name='submit_sos'),
+    path('sos/<int:alert_id>/feedback/', views.save_sos_feedback, name='save_sos_feedback'),
     path('sos/<int:alert_id>/<str:action>/', views.respond_sos, name='respond_sos'),
     path('sos/donor/<int:alert_id>/<str:action>/', views.respond_sos_donor, name='respond_sos_donor'),
     path('patient/requests/<int:alert_id>/donors/', views.patient_donors, name='patient_donors'),
