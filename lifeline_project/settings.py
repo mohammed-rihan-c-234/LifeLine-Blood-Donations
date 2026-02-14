@@ -5,6 +5,23 @@ import dj_database_url
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def env_int(name, default):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        return default
+
 # Security
 SECRET_KEY = 'django-insecure-change-this-to-a-secure-random-key-in-production'
 DEBUG = True
@@ -118,7 +135,9 @@ DEFAULT_FROM_EMAIL = os.getenv(
 )
 
 EMAIL_HOST = os.getenv('DJANGO_EMAIL_HOST', '')
-EMAIL_PORT = int(os.getenv('DJANGO_EMAIL_PORT', '587'))
+EMAIL_PORT = env_int('DJANGO_EMAIL_PORT', 587)
 EMAIL_HOST_USER = os.getenv('DJANGO_EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_HOST_PASSWORD', '')
-EMAIL_USE_TLS = os.getenv('DJANGO_EMAIL_USE_TLS', '1') == '1'
+EMAIL_USE_TLS = env_bool('DJANGO_EMAIL_USE_TLS', True)
+EMAIL_USE_SSL = env_bool('DJANGO_EMAIL_USE_SSL', False)
+EMAIL_TIMEOUT = env_int('DJANGO_EMAIL_TIMEOUT', 10)
