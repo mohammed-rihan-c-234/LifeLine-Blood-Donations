@@ -81,3 +81,19 @@ class SOSAlert(models.Model):
     )
     donor_status = models.CharField(max_length=10, choices=DONOR_STATUS_CHOICES, default='pending')
     feedback = models.TextField(blank=True, default="")
+
+
+class AwarenessClass(models.Model):
+    program_name = models.CharField(max_length=150)
+    start_datetime = models.DateTimeField()
+    end_datetime = models.DateTimeField(blank=True, null=True)
+    location = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['start_datetime']
+        verbose_name_plural = "Awareness classes"
+
+    def __str__(self):
+        return f"{self.program_name} ({self.start_datetime:%Y-%m-%d %H:%M})"

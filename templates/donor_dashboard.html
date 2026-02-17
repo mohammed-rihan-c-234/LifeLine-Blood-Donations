@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-8">
         <div class="section-title">
             <h2>Donor Dashboard</h2>
             <p>See all patient blood requests.</p>
@@ -61,6 +61,22 @@
                 <i class="fa fa-user"></i> Edit Profile
             </a>
         </p>
+    </div>
+    <div class="col-md-4">
+        <div class="panel panel-default" style="margin-top: 18px;">
+            <div class="panel-heading"><strong>Upcoming Awareness Classes</strong></div>
+            <div class="panel-body" style="max-height: 210px; overflow:auto;">
+                {% for cls in upcoming_awareness_classes %}
+                    <div style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                        <p style="margin:0;"><strong>{{ cls.program_name }}</strong></p>
+                        <p style="margin:0;"><small>{{ cls.start_datetime|date:"M d, Y H:i" }}</small></p>
+                        <p style="margin:0;"><small>{{ cls.location }}</small></p>
+                    </div>
+                {% empty %}
+                    <p style="margin:0; color:#777;">No upcoming awareness classes.</p>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 </div>
 

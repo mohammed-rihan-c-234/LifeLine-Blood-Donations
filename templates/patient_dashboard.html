@@ -64,6 +64,20 @@
                 <h4>Awareness</h4>
                 <p>Spread urgent donor needs through social media, organize easy-to-access donation drives, and share real stories to inspire action.</p>
                 <p style="margin-top: 6px;">Educate people that donation is safe and quick, and encourage first-time and regular voluntary donors for a safer blood supply.</p>
+                {% if current_awareness_classes %}
+                    <div style="margin-top: 10px;">
+                        <p style="margin: 0 0 6px;"><strong>{{ awareness_classes_title }}</strong></p>
+                        {% for cls in current_awareness_classes %}
+                            <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #cfe9d5;">
+                                <p style="margin: 0;"><strong>{{ cls.program_name }}</strong></p>
+                                <p style="margin: 0;"><small>{{ cls.start_datetime|date:"M d, Y H:i" }}{% if cls.end_datetime %} - {{ cls.end_datetime|date:"H:i" }}{% endif %}</small></p>
+                                <p style="margin: 0;"><small>{{ cls.location }}</small></p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="margin-top: 8px;"><small>No awareness classes are running at this moment.</small></p>
+                {% endif %}
             </div>
         </div>
     </div>

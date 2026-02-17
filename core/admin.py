@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, BloodInventory, SOSAlert
+from .models import User, BloodInventory, SOSAlert, AwarenessClass
 
 # 1. Register the Custom User Model
 @admin.register(User)
@@ -36,3 +36,10 @@ class SOSAlertAdmin(admin.ModelAdmin):
     list_display = ('blood_type', 'status', 'requester', 'created_at')
     list_filter = ('status', 'blood_type')
     search_fields = ('requester__username',)
+
+
+@admin.register(AwarenessClass)
+class AwarenessClassAdmin(admin.ModelAdmin):
+    list_display = ('program_name', 'start_datetime', 'end_datetime', 'location', 'is_active')
+    list_filter = ('is_active', 'start_datetime')
+    search_fields = ('program_name', 'location')

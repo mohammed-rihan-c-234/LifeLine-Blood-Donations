@@ -11,8 +11,9 @@ from django.contrib import messages
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
+from django.utils import timezone
 import logging
-from .models import User, SOSAlert, BloodInventory
+from .models import User, SOSAlert, BloodInventory, AwarenessClass
 from .forms import SignUpForm, HospitalCreationForm, InventoryForm, HospitalUpdateForm, DonorProfileForm
 import math
 import json
@@ -129,6 +130,21 @@ def dashboard(request):
     # 2. PATIENT DASHBOARD
     elif user.role == 'user':
         my_alerts = SOSAlert.objects.filter(requester=user).order_by('-created_at')
+        now = timezone.now()
+        current_classes = AwarenessClass.objects.filter(
+            is_active=True,
+            start_datetime__lte=now,
+        ).filter(
+            Q(end_datetime__isnull=True) | Q(end_datetime__gte=now)
+        ).order_by('start_datetime')[:5]
+        awareness_classes = current_classes
+        awareness_classes_title = "Awareness classes running now:"
+        if not awareness_classes:
+            awareness_classes = AwarenessClass.objects.filter(
+                is_active=True,
+                start_datetime__gte=now,
+            ).order_by('start_datetime')[:5]
+            awareness_classes_title = "Upcoming awareness classes:"
         hospitals = User.objects.filter(role='hospital')
         nearby = []
         for h in hospitals:
@@ -154,13 +170,27 @@ def dashboard(request):
         return render(
             request,
             'patient_dashboard.html',
-            {'alerts': my_alerts, 'hospitals': nearby[:5], 'registered_hospitals_for_map': registered_hospitals_for_map},
+            {
+                'alerts': my_alerts,
+                'hospitals': nearby[:5],
+                'registered_hospitals_for_map': registered_hospitals_for_map,
+                'current_awareness_classes': awareness_classes,
+                'awareness_classes_title': awareness_classes_title,
+            },
         )
 
     # 3. DONOR DASHBOARD
     elif user.role == 'donor':
         all_alerts = SOSAlert.objects.all().order_by('-created_at')
-        return render(request, 'donor_dashboard.html', {'alerts': all_alerts})
+        upcoming_classes = AwarenessClass.objects.filter(
+            is_active=True,
+            start_datetime__gte=timezone.now(),
+        ).order_by('start_datetime')[:5]
+        return render(
+            request,
+            'donor_dashboard.html',
+            {'alerts': all_alerts, 'upcoming_awareness_classes': upcoming_classes},
+        )
 
     # 4. HOSPITAL DASHBOARD
     elif user.role == 'hospital':
